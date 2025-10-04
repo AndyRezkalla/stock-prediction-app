@@ -1,0 +1,10 @@
+streamlit
+yfinance
+pandas
+numpy
+scikit-learn
+plotly
+matplotlib
+ta  # optional, for technical indicators
+joblib
+tensorflow  # optional: needed only if LSTM support is desired
