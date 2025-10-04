@@ -89,9 +89,20 @@ def fetch_data(ticker: str, start: pd.Timestamp, end: pd.Timestamp) -> pd.DataFr
     df = yf.download(ticker, start=start, end=end, progress=False)
     if df.empty:
         return df
-    df = df[["Open", "High", "Low", "Close", "Adj Close", "Volume"]].rename(
-        columns={"Adj Close": "Adj_Close"}
-    )
+    # Some tickers/data sources might not include an "Adj Close" column. To make the
+    # app robust, rename the column if present or create it from "Close" if missing.
+    if "Adj Close" in df.columns:
+        # Rename to a consistent format for downstream processing
+        df = df.rename(columns={"Adj Close": "Adj_Close"})
+    else:
+        # If there's no adjusted close column, duplicate the close price as Adj_Close
+        # so that the rest of the app still works.
+        if "Close" in df.columns:
+            df["Adj_Close"] = df["Close"]
+    # Define the columns we want to keep. Some may be missing depending on the ticker,
+    # so we filter by those that actually exist in the DataFrame.
+    required_cols = ["Open", "High", "Low", "Close", "Adj_Close", "Volume"]
+    df = df[[c for c in required_cols if c in df.columns]]
     df.index = pd.to_datetime(df.index)
     return df
 
